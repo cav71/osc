@@ -8,6 +8,7 @@ from __future__ import print_function
 from . import cmdln
 from . import conf
 from . import oscerr
+from . import plugins
 import sys
 import time
 import imp
@@ -8436,22 +8437,9 @@ Please submit there instead, or use --nodevelproject to force direct submission.
                 if not extfile.endswith('.py'):
                     continue
                 try:
-                    modname = os.path.splitext(extfile)[0]
-                    mod = imp.load_source(modname, os.path.join(plugin_dir, extfile))
-                    # restore the old exec semantic
-                    mod.__dict__.update(globals())
-                    for name in dir(mod):
-                        data = getattr(mod, name)
-                        # Add all functions (which are defined in the imported module)
-                        # to the class (filtering only methods which start with "do_"
-                        # breaks the old behavior).
-                        # Also add imported modules (needed for backward compatibility).
-                        # New plugins should not use "self.<imported modname>.<something>"
-                        # to refer to the imported module. Instead use
-                        # "<imported modname>.<something>".
-                        if (inspect.isfunction(data) and inspect.getmodule(data) == mod
-                            or inspect.ismodule(data)):
-                            setattr(self.__class__, name, data)
+                    nodes = plugins.load_from_source(extfile, inject=globals()) 
+                    for name, data in nodes.iteritems():
+                        setattr(self.__class__, name, data)
                 except (SyntaxError, NameError, ImportError) as e:
                     if (os.environ.get('OSC_PLUGIN_FAIL_IGNORE')):
                         print("%s: %s\n" % (os.path.join(plugin_dir, extfile), e), file=sys.stderr)
