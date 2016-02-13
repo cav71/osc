@@ -81,8 +81,9 @@ def load_from_zipfile(zip_filename, modname=None, inject=None, include_modules=T
     root, ext = os.path.splitext(zip_filename)
     modname = modname or os.path.basename(root)
 
-    with setpath(zip_filename):
-        zfp = zipimport.zipimporter(zip_filename)
+    zfp = zipimport.zipimporter(zip_filename)
+    print(zfp.get_data('plugin.with.jinja/main.py'))
+
         #with zipfile.ZipFile(zip_filename) as zfp:
         #    zfp.printdir()
         #    print(zfp.read('plugin.with.jinja/' + main))
@@ -94,4 +95,6 @@ def load_from_zipfile(zip_filename, modname=None, inject=None, include_modules=T
     #    inject = inject or {}
     #return load_from_source(py_filename, modname=modname, inject=inject, include_modules=include_modules)
 
+
+load_from_zipfile('tests/plugins_fixtures/plugin.with.jinja.zip')
 
